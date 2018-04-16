@@ -201,13 +201,15 @@ with body example :
 	"notes" : "Pesanan ID-20180108-170723"
 }]`
 
-so does the sales id and sales_date also automatically be inputted
+so does the sales id will also be automatically inputted
 
 there's also a single insert endpoints :
-http://localhost:8080/inventory/add
-http://localhost:8080/purchasing/add
-http://localhost:8080/sales/add
 
+http://localhost:8080/inventory/add
+
+http://localhost:8080/purchasing/add
+
+http://localhost:8080/sales/add
 
 
 to generate the inventory report just access these url:
