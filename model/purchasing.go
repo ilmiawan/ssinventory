@@ -8,6 +8,7 @@ type Purchasing struct {
 	ReqAmount      int    `json:"req_amount,string"`
 	RecAmount      int    `json:"rec_amount,string"`
 	Price          int    `json:"price,string"`
+	Total          int    `json:"total,string"`
 	ReceiptNo      string `json:"receipt_no"`
 	Notes          string `json:"notes"`
 }

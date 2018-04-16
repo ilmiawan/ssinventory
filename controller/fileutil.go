@@ -50,12 +50,10 @@ func readInventoryFiles(filename string) []model.Inventory {
 			panic(err)
 		}
 		inventories = append(inventories, model.Inventory{
-			SKU:         skus[index],
-			Name:        names[index],
-			Amount:      amountInt,
-			AvgPrice:    0,
-			CreatedDate: "",
-			UpdatedDate: "",
+			SKU:      skus[index],
+			Name:     names[index],
+			Amount:   amountInt,
+			AvgPrice: 0,
 		})
 	}
 

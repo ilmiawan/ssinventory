@@ -38,6 +38,7 @@ func main() {
 
 	// report routing
 	http.HandleFunc("/report/inventory", controller.GenerateInventoryReport)
+	http.HandleFunc("/report/sales", controller.GenerateSalesReport)
 
 	http.HandleFunc("/createTables", api.CreateTables)
 	http.ListenAndServe(port(), nil)

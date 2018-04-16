@@ -38,9 +38,7 @@ func createInventoryTable() {
 			sku TEXT NOT NULL PRIMARY KEY,
 			name TEXT,
 			amount INT,
-			avgprice INT,
-			created_date NUMERIC,
-			updated_daet NUMERIC
+			avg_price INT
 		);
 		`)
 
@@ -56,6 +54,7 @@ func createPurcashingTable() {
 			req_amount INT,
 			rec_amount INT,
 			price INT,
+			total INT,
 			receipt_no TEXT,
 			notes TEXT
 		);
@@ -68,10 +67,12 @@ func createSalesTable() {
 	stmt, _ := db.Prepare(`
 		CREATE TABLE IF NOT EXISTS sales (
 			id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+			sales_id TEXT NOT NULL,
 			sku TEXT NOT NULL,
 			sales_date NUMERIC,
 			amount INT,
 			price INT,
+			total INT,
 			notes TEXT
 		);
 		`)

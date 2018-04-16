@@ -8,7 +8,7 @@ import (
 
 //GetSpecificInventory function is to get one selected inventory only
 func GetSpecificInventory(sku string, w http.ResponseWriter) model.Inventory {
-	sqlStatement := `SELECT sku, name, amount, avgprice, created_date, updated_daet from inventory WHERE sku=$1;`
+	sqlStatement := `SELECT sku, name, amount, avg_price from inventory WHERE sku=$1;`
 
 	openDBConn()
 	defer db.Close()
@@ -16,7 +16,7 @@ func GetSpecificInventory(sku string, w http.ResponseWriter) model.Inventory {
 
 	var inv model.Inventory
 
-	err := row.Scan(&inv.SKU, &inv.Name, &inv.Amount, &inv.AvgPrice, &inv.CreatedDate, &inv.UpdatedDate)
+	err := row.Scan(&inv.SKU, &inv.Name, &inv.Amount, &inv.AvgPrice)
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +28,7 @@ func GetSpecificInventory(sku string, w http.ResponseWriter) model.Inventory {
 func ListAllInventories(w http.ResponseWriter) []model.Inventory {
 	openDBConn()
 	defer db.Close()
-	rows, err := db.Query("select sku, name, amount, avgprice, created_date, updated_daet from inventory")
+	rows, err := db.Query("select sku, name, amount, avg_price from inventory")
 	checkInternalServerError(err, w)
 
 	invs := []model.Inventory{}
@@ -36,7 +36,7 @@ func ListAllInventories(w http.ResponseWriter) []model.Inventory {
 
 	if rows != nil {
 		for rows.Next() {
-			err = rows.Scan(&inv.SKU, &inv.Name, &inv.Amount, &inv.AvgPrice, &inv.CreatedDate, &inv.UpdatedDate)
+			err = rows.Scan(&inv.SKU, &inv.Name, &inv.Amount, &inv.AvgPrice)
 			checkInternalServerError(err, w)
 			invs = append(invs, inv)
 		}
@@ -51,8 +51,8 @@ func SaveInventory(inv model.Inventory, w http.ResponseWriter) {
 	defer db.Close()
 
 	stmt, err := db.Prepare(`
-		INSERT INTO inventory(sku, name, amount, avgprice, created_date, updated_daet) 
-		VALUES(?, ?, ?, ?, date('now'), date('now'))
+		INSERT INTO inventory(sku, name, amount, avg_price) 
+		VALUES(?, ?, ?, ?)
 		`)
 	checkInternalServerError(err, w)
 
@@ -66,7 +66,7 @@ func EditInventoryData(inv model.Inventory, w http.ResponseWriter) {
 	defer db.Close()
 
 	stmt, err := db.Prepare(`
-		UPDATE inventory SET name=?, amount=?, avgprice=?, updated_daet=date('now') 
+		UPDATE inventory SET name=?, amount=?, avg_price=?
 		WHERE sku=?
 		`)
 	checkInternalServerError(err, w)
