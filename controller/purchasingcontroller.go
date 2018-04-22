@@ -5,15 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/muslimilmiawan/ssinventory/api"
+	"github.com/ilmiawan/ssinventory/api"
 )
 
 //GetPurchase is the function to get one purchase object
 func GetPurchase(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "GET")
 
-	var purchaseID, _ = strconv.Atoi(r.FormValue("id"))
-	api.GetPurchasingData(purchaseID, w)
+	purchaseID, _ := strconv.Atoi(r.FormValue("id"))
+	pur := api.GetPurchasingData(purchaseID, w)
+
+	json.NewEncoder(w).Encode(pur)
 }
 
 //ListPurchase is the function to get all purchase list
@@ -65,4 +67,21 @@ func DeletePurchase(w http.ResponseWriter, r *http.Request) {
 	api.DeletePurchaseData(purchaseID, w)
 
 	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+}
+
+//MigratePurchasingFromFile function is to migrate data from purchasing csv
+func MigratePurchasingFromFile(w http.ResponseWriter, r *http.Request) {
+	records := api.ReadCSVFile(r.FormValue("filename"))
+	purs := api.ConvertRecordsToPurchasingFile(records)
+
+	for index := range purs {
+		// remove first row, the header
+		if index == 0 {
+			continue
+		}
+		pur := purs[index]
+		api.SavePurchase(pur, w)
+	}
+
+	http.Redirect(w, r, "/purchasing/list", http.StatusPermanentRedirect)
 }

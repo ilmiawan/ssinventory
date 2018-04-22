@@ -1,11 +1,22 @@
+LAPORAN NILAI BARANG,
+Tanggal Cetak,17 April 17048
+Jumlah SKU,5
+Jumlah Total Barang,306
+Total Nilai,21410900
 LAPORAN PENJUALAN,
-Tanggal Cetak,16 April 16048
+Tanggal Cetak,17 April 17048
 Total Omzet,600000
 Total Laba Kotor,269000
 Total Penjualan,4
 Total Barang,5
+SKU,Nama Item,Jumlah,Rata-Rata Harga Beli,Total
+SSI-D01401050-MM-RED,"Zeomila Zipper Casual Blouse (M,Red)",73,70102,5117446
+SSI-D01037822-XX-BLA,"Dellaya Plain Loose Big Blouse (XXL,Black)",8,70587,564696
+SSI-D01322275-XL-WHI,"Thafqya Plain Raglan Blouse (XL,White)",116,69382,8048312
+SSI-D01401064-XL-RED,"Zeomila Zipper Casual Blouse (XL,Red)",44,70854,3117576
+SSI-D01220338-XX-SAL,"Zeomila Zipper Casual Blouse (XL,Red)",65,70198,4562870
 ID Pesanan,Waktu,SKU,Nama Barang,Jumlah,Harga Jual,Total,Harga Beli,Laba
-,08/01/2018  15:26:44,SSI-D01220338-XX-SAL,"Zeomila Zipper Casual Blouse (XL,Red)",1,130000,130000,70000,60000
-,08/01/2018  22:05:15,SSI-D01401064-XL-RED,"Zeomila Zipper Casual Blouse (XL,Red)",1,115000,115000,61000,54000
-,09/01/2018  02:07:08,SSI-D01322275-XL-WHI,"Thafqya Plain Raglan Blouse (XL,White)",2,115000,230000,61000,108000
-,09/01/2018  02:38:36,SSI-D01037822-XX-BLA,"Dellaya Plain Loose Big Blouse (XXL,Black)",1,125000,125000,78000,47000
+ID-20180108-149680,09/01/2018  02:07:08,SSI-D01322275-XL-WHI,"Thafqya Plain Raglan Blouse (XL,White)",2,115000,230000,61000,108000
+ID-20180108-170723,08/01/2018  15:26:44,SSI-D01220338-XX-SAL,"Zeomila Zipper Casual Blouse (XL,Red)",1,130000,130000,70000,60000
+ID-20180108-548167,08/01/2018  22:05:15,SSI-D01401064-XL-RED,"Zeomila Zipper Casual Blouse (XL,Red)",1,115000,115000,61000,54000
+ID-20180109-853724,09/01/2018  02:38:36,SSI-D01037822-XX-BLA,"Dellaya Plain Loose Big Blouse (XXL,Black)",1,125000,125000,78000,47000

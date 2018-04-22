@@ -3,7 +3,7 @@ package controller
 import (
 	"net/http"
 
-	"github.com/muslimilmiawan/ssinventory/api"
+	"github.com/ilmiawan/ssinventory/api"
 )
 
 // GenerateInventoryReport function is to generate main inventory report

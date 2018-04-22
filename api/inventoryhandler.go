@@ -1,9 +1,10 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/muslimilmiawan/ssinventory/model"
+	"github.com/ilmiawan/ssinventory/model"
 )
 
 //GetSpecificInventory function is to get one selected inventory only
@@ -81,12 +82,16 @@ func DeleteInventory(sku string, w http.ResponseWriter) {
 	openDBConn()
 	defer db.Close()
 
-	stmt, err := db.Prepare(`
-		"delete	from inventory 
-		where sku = ?"`)
+	stmt, err := db.Prepare("delete	from inventory where sku = ?")
 	checkInternalServerError(err, w)
 
-	stmt.Exec(sku)
+	res, err := stmt.Exec(sku)
+	checkInternalServerError(err, w)
+
+	affect, err := res.RowsAffected()
+	checkInternalServerError(err, w)
+
+	fmt.Println(affect)
 }
 
 //SumInventoryAmount function is to update inventory when purchasing or sales

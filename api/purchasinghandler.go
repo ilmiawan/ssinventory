@@ -1,22 +1,29 @@
 package api
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 
-	"github.com/muslimilmiawan/ssinventory/model"
+	"github.com/ilmiawan/ssinventory/model"
 )
 
 //GetPurchasingData is the function to get one purchase object
-func GetPurchasingData(purchaseID int, w http.ResponseWriter) {
+func GetPurchasingData(purchaseID int, w http.ResponseWriter) model.Purchasing {
+	stmt := `select id, sku, purchasing_date, req_amount, rec_amount, price, total, receipt_no, notes from purchasing where id=$1;`
+
 	openDBConn()
 	defer db.Close()
-	stmt := `select id, sku, purchasing_date, req_amount, rec_amount, price, total, receipt_no, notes from purchasing where sku=$1;`
-	checkInternalServerError(err, w)
-
 	row := db.QueryRow(stmt, purchaseID)
 
-	json.NewEncoder(w).Encode(row)
+	var pur model.Purchasing
+
+	err := row.Scan(&pur.ID, &pur.SKU, &pur.PurchasingDate, &pur.ReqAmount, &pur.RecAmount, &pur.Price, &pur.Total, &pur.ReceiptNo, &pur.Notes)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return pur
 }
 
 //ListAllPurchasingData function is to retrieve all purchasing data
@@ -54,7 +61,7 @@ func SavePurchase(pur model.Purchasing, w http.ResponseWriter) {
 	_, err = stmt.Exec(pur.SKU, pur.PurchasingDate, pur.ReqAmount, pur.RecAmount, pur.Price, pur.Total, pur.ReceiptNo, pur.Notes)
 	checkInternalServerError(err, w)
 
-	SumInventoryAmount(pur.RecAmount, pur.Price, pur.SKU, w)
+	//SumInventoryAmount(pur.RecAmount, pur.Price, pur.SKU, w)
 }
 
 //EditPuchasingData function is to process editing purchase data
@@ -86,5 +93,11 @@ func DeletePurchaseData(purchaseID int, w http.ResponseWriter) {
 	stmt, err := db.Prepare("delete	from purchasing where id = ?")
 	checkInternalServerError(err, w)
 
-	stmt.Exec(purchaseID)
+	res, err := stmt.Exec(purchaseID)
+	checkInternalServerError(err, w)
+
+	affect, err := res.RowsAffected()
+	checkInternalServerError(err, w)
+
+	fmt.Println(affect)
 }

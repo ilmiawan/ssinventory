@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/muslimilmiawan/ssinventory/api"
+	"github.com/ilmiawan/ssinventory/api"
 )
 
 //GetInventory is the function to get one inventory object
@@ -71,11 +71,14 @@ func DeleteInventoryController(w http.ResponseWriter, r *http.Request) {
 
 //MigrateInventoryFromFile function is to migrate data from inventory data file
 func MigrateInventoryFromFile(w http.ResponseWriter, r *http.Request) {
-	var filename = r.FormValue("filename")
+	records := api.ReadCSVFile(r.FormValue("filename"))
+	invs := api.ConvertRecordsToInventory(records)
 
-	invs := readInventoryFiles(filename)
-
-	for index := 0; index < len(invs); index++ {
+	for index := range invs {
+		// remove first row, the header
+		if index == 0 {
+			continue
+		}
 		inv := invs[index]
 		api.SaveInventory(inv, w)
 	}

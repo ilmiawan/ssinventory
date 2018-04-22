@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/muslimilmiawan/ssinventory/controller"
+	"github.com/ilmiawan/ssinventory/controller"
 
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/muslimilmiawan/ssinventory/api"
+	"github.com/ilmiawan/ssinventory/api"
 )
 
 func main() {
@@ -41,6 +41,9 @@ func main() {
 	http.HandleFunc("/report/sales", controller.GenerateSalesReport)
 
 	http.HandleFunc("/createTables", api.CreateTables)
+	http.HandleFunc("/migrate/inventory", controller.MigrateInventoryFromFile)
+	http.HandleFunc("/migrate/purchasing", controller.MigratePurchasingFromFile)
+	http.HandleFunc("/migrate/sales", controller.MigrateSalesFromFile)
 	http.ListenAndServe(port(), nil)
 }
 

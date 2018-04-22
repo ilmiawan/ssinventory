@@ -23,6 +23,13 @@ func openDBConn() {
 	}
 }
 
+func runQueryRow(stmt string, id interface{}) *sql.Row {
+	openDBConn()
+	defer db.Close()
+
+	return db.QueryRow(stmt, id)
+}
+
 //CreateTables is the function to create tables
 func CreateTables(w http.ResponseWriter, r *http.Request) {
 	openDBConn()

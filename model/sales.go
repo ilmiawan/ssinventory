@@ -3,7 +3,7 @@ package model
 //Sales is the model for stock sales database
 type Sales struct {
 	ID        int    `json:"id,string,omitempty"`
-	SalesID   string `json:"sales_d,omitempty"`
+	SalesID   string `json:"sales_id,omitempty"`
 	SKU       string `json:"sku,omitempty"`
 	SalesDate string `json:"sales_date,omitempty"`
 	Amount    int    `json:"amount,string,omitempty"`

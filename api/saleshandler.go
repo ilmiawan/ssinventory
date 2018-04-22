@@ -1,15 +1,15 @@
 package api
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 
-	"github.com/muslimilmiawan/ssinventory/model"
+	"github.com/ilmiawan/ssinventory/model"
 )
 
 //GetSalesData is the function to get one sales object
-func GetSalesData(ID int, w http.ResponseWriter) {
-	stmt := `select sales_id, sku, sales_date, amount, price, total, notes from sales where id = $1;`
+func GetSalesData(ID int, w http.ResponseWriter) model.Sales {
+	stmt := `select id, sales_id, sku, sales_date, amount, price, total, notes from sales where id = $1;`
 	checkInternalServerError(err, w)
 
 	openDBConn()
@@ -17,7 +17,14 @@ func GetSalesData(ID int, w http.ResponseWriter) {
 
 	row := db.QueryRow(stmt, ID)
 
-	json.NewEncoder(w).Encode(row)
+	var sale model.Sales
+
+	err := row.Scan(&sale.ID, &sale.SalesID, &sale.SKU, &sale.SalesDate, &sale.Amount, &sale.Price, &sale.Total, &sale.Notes)
+	if err != nil {
+		panic(err)
+	}
+
+	return sale
 }
 
 //ListAllSalesData to list all sales data
@@ -77,10 +84,14 @@ func DeleteSalesData(ID int, w http.ResponseWriter) {
 	openDBConn()
 	defer db.Close()
 
-	stmt, err := db.Prepare(`
-		"delete	from sales 
-		where id = ?"`)
+	stmt, err := db.Prepare("delete	from sales where id = ?")
 	checkInternalServerError(err, w)
 
-	stmt.Exec(ID)
+	res, err := stmt.Exec(ID)
+	checkInternalServerError(err, w)
+
+	affect, err := res.RowsAffected()
+	checkInternalServerError(err, w)
+
+	fmt.Println(affect)
 }

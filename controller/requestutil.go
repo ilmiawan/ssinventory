@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/muslimilmiawan/ssinventory/model"
+	"github.com/ilmiawan/ssinventory/model"
 )
 
 func checkInternalServerError(err error, w http.ResponseWriter) {

@@ -5,15 +5,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/muslimilmiawan/ssinventory/api"
+	"github.com/ilmiawan/ssinventory/api"
 )
 
 //GetSales is the function to get one sales object
 func GetSales(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "GET")
 
-	var salesID, _ = strconv.Atoi(r.FormValue("id"))
-	api.GetSalesData(salesID, w)
+	salesID, _ := strconv.Atoi(r.FormValue("id"))
+	sale := api.GetSalesData(salesID, w)
+
+	json.NewEncoder(w).Encode(sale)
 }
 
 //ListSales is the function to get all sales list
@@ -65,4 +67,21 @@ func DeleteSales(w http.ResponseWriter, r *http.Request) {
 	api.DeleteSalesData(salesID, w)
 
 	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+}
+
+//MigrateSalesFromFile function is to migrate data from sales csv
+func MigrateSalesFromFile(w http.ResponseWriter, r *http.Request) {
+	records := api.ReadCSVFile(r.FormValue("filename"))
+	sales := api.ConvertRecordsToSalesFile(records)
+
+	for index := range sales {
+		// remove first row, the header
+		if index == 0 {
+			continue
+		}
+		sale := sales[index]
+		api.SaveSales(sale, w)
+	}
+
+	http.Redirect(w, r, "/sales/list", http.StatusPermanentRedirect)
 }

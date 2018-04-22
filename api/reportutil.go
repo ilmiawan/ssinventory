@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/muslimilmiawan/ssinventory/model"
+	"github.com/ilmiawan/ssinventory/model"
 )
 
 var header = [][]string{}
@@ -22,9 +22,9 @@ func CreateInventoryReport(w http.ResponseWriter) {
 	totalAmounts := 0
 
 	for _, inv := range invs {
-		grandTotal += inv.AvgPrice * inv.Amount
 		totalAmounts += inv.Amount
 		total := inv.AvgPrice * inv.Amount
+		grandTotal += total
 		item := []string{inv.SKU, inv.Name, strconv.Itoa(inv.Amount), strconv.Itoa(inv.AvgPrice), strconv.Itoa(total)}
 		data = append(data, item)
 	}
