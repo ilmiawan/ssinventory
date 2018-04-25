@@ -7,8 +7,8 @@ import (
 
 	"github.com/ilmiawan/ssinventory/controller"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/ilmiawan/ssinventory/api"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -20,7 +20,6 @@ func main() {
 	http.HandleFunc("/inventory/addBulk", controller.AddBulkInventory)
 	http.HandleFunc("/inventory/update", controller.UpdateInventory)
 	http.HandleFunc("/inventory/delete", controller.DeleteInventoryController)
-	http.HandleFunc("/inventory/readfile", controller.MigrateInventoryFromFile)
 	// purchasing routing
 	http.HandleFunc("/purchasing", controller.GetPurchase)
 	http.HandleFunc("/purchasing/list", controller.ListPurchase)

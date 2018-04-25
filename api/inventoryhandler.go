@@ -1,36 +1,27 @@
 package api
 
 import (
-	"fmt"
-	"net/http"
+	"database/sql"
 
 	"github.com/ilmiawan/ssinventory/model"
 )
 
-//GetSpecificInventory function is to get one selected inventory only
-func GetSpecificInventory(sku string, w http.ResponseWriter) model.Inventory {
-	sqlStatement := `SELECT sku, name, amount, avg_price from inventory WHERE sku=$1;`
+//GetInventoryBySKU function is to get one selected inventory only
+func GetInventoryBySKU(sku string) (model.Inventory, error) {
 
-	openDBConn()
-	defer db.Close()
-	row := db.QueryRow(sqlStatement, sku)
+	sqlStatement := `SELECT sku, name, amount, avg_price from inventory WHERE sku = ?`
+	row := runQueryRow(sqlStatement, sku)
 
 	var inv model.Inventory
-
 	err := row.Scan(&inv.SKU, &inv.Name, &inv.Amount, &inv.AvgPrice)
-	if err != nil {
-		panic(err)
-	}
 
-	return inv
+	return inv, err
 }
 
-//ListAllInventories is to get all inventories data
-func ListAllInventories(w http.ResponseWriter) []model.Inventory {
-	openDBConn()
-	defer db.Close()
-	rows, err := db.Query("select sku, name, amount, avg_price from inventory")
-	checkInternalServerError(err, w)
+//ListInventories is to get all inventories data
+func ListInventories() ([]model.Inventory, error) {
+	stmt := "select sku, name, amount, avg_price from inventory"
+	rows, err := runQuery(stmt)
 
 	invs := []model.Inventory{}
 	var inv model.Inventory
@@ -38,70 +29,41 @@ func ListAllInventories(w http.ResponseWriter) []model.Inventory {
 	if rows != nil {
 		for rows.Next() {
 			err = rows.Scan(&inv.SKU, &inv.Name, &inv.Amount, &inv.AvgPrice)
-			checkInternalServerError(err, w)
 			invs = append(invs, inv)
 		}
 	}
 
-	return invs
+	return invs, err
 }
 
 //SaveInventory is the function to create new inventory
-func SaveInventory(inv model.Inventory, w http.ResponseWriter) {
-	openDBConn()
-	defer db.Close()
-
-	stmt, err := db.Prepare(`
-		INSERT INTO inventory(sku, name, amount, avg_price) 
-		VALUES(?, ?, ?, ?)
-		`)
-	checkInternalServerError(err, w)
-
-	_, err = stmt.Exec(inv.SKU, inv.Name, inv.Amount, inv.AvgPrice)
-	checkInternalServerError(err, w)
+func SaveInventory(inv model.Inventory) (sql.Result, error) {
+	queryString := "INSERT INTO inventory(sku, name, amount, avg_price) VALUES(?, ?, ?, ?)"
+	return runExecPreparedStatement(queryString, inv.SKU, inv.Name, inv.Amount, inv.AvgPrice)
 }
 
 //EditInventoryData function to run inventory modification
-func EditInventoryData(inv model.Inventory, w http.ResponseWriter) {
-	openDBConn()
-	defer db.Close()
-
-	stmt, err := db.Prepare(`
-		UPDATE inventory SET name=?, amount=?, avg_price=?
-		WHERE sku=?
-		`)
-	checkInternalServerError(err, w)
-
-	_, err = stmt.Exec(inv.Name, inv.Amount, inv.AvgPrice, inv.SKU)
-	checkInternalServerError(err, w)
-
+func EditInventoryData(inv model.Inventory) (sql.Result, error) {
+	queryString := "UPDATE inventory SET name=?, amount=?, avg_price=? WHERE sku=?"
+	return runExecPreparedStatement(queryString, inv.Name, inv.Amount, inv.AvgPrice, inv.SKU)
 }
 
 //DeleteInventory is the process of deleting single object
-func DeleteInventory(sku string, w http.ResponseWriter) {
-	openDBConn()
-	defer db.Close()
-
-	stmt, err := db.Prepare("delete	from inventory where sku = ?")
-	checkInternalServerError(err, w)
-
-	res, err := stmt.Exec(sku)
-	checkInternalServerError(err, w)
-
-	affect, err := res.RowsAffected()
-	checkInternalServerError(err, w)
-
-	fmt.Println(affect)
+func DeleteInventory(sku string) (sql.Result, error) {
+	queryString := "delete	from inventory where sku = ?"
+	return runExecPreparedStatement(queryString, sku)
 }
 
 //SumInventoryAmount function is to update inventory when purchasing or sales
-func SumInventoryAmount(amount int, transactionAveragePrice int, sku string, w http.ResponseWriter) {
-	inv := GetSpecificInventory(sku, w)
+func SumInventoryAmount(amount int, transactionAveragePrice int, sku string) (sql.Result, error) {
+	inv, err := GetInventoryBySKU(sku)
 
 	inv.Amount = inv.Amount + amount
 	if transactionAveragePrice == 0 {
 		inv.AvgPrice = (inv.AvgPrice + transactionAveragePrice) / 2
 	}
 
-	EditInventoryData(inv, w)
+	result, err := EditInventoryData(inv)
+
+	return result, err
 }

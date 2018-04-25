@@ -13,7 +13,8 @@ func GetSales(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "GET")
 
 	salesID, _ := strconv.Atoi(r.FormValue("id"))
-	sale := api.GetSalesData(salesID, w)
+	sale, err := api.GetSalesData(salesID)
+	checkInternalServerError(err, w)
 
 	json.NewEncoder(w).Encode(sale)
 }
@@ -21,7 +22,10 @@ func GetSales(w http.ResponseWriter, r *http.Request) {
 //ListSales is the function to get all sales list
 func ListSales(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "GET")
-	sales := api.ListAllSalesData(w)
+
+	sales, err := api.ListAllSalesData()
+	checkInternalServerError(err, w)
+
 	json.NewEncoder(w).Encode(sales)
 }
 
@@ -31,8 +35,10 @@ func AddSales(w http.ResponseWriter, r *http.Request) {
 
 	sale := parseRequestToSales(w, r)
 
-	api.SaveSales(sale, w)
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	result, err := api.SaveSales(sale)
+	checkInternalServerError(err, w)
+
+	checkQueryResult(result, "Successfully add Sales data.", "Failed to add sales data.", w)
 }
 
 //AddBulkSales is to save Multiple stock sales data
@@ -43,10 +49,11 @@ func AddBulkSales(w http.ResponseWriter, r *http.Request) {
 
 	for index := 0; index < len(sales); index++ {
 		sale := sales[index]
-		api.SaveSales(sale, w)
+		_, err := api.SaveSales(sale)
+		checkInternalServerError(err, w)
 	}
 
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	http.Redirect(w, r, "/sales/list", http.StatusPermanentRedirect)
 }
 
 //UpdateSales is the function to get update existing stock sales data
@@ -54,9 +61,10 @@ func UpdateSales(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "PUT")
 
 	sale := parseRequestToSales(w, r)
-	api.EditSales(sale, w)
+	result, err := api.EditSales(sale)
+	checkInternalServerError(err, w)
 
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	checkQueryResult(result, "Successfully updated sales data.", "Failed to update sales data.", w)
 }
 
 //DeleteSales is the function to delete one stock sales object
@@ -64,23 +72,27 @@ func DeleteSales(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "DELETE")
 
 	var salesID, _ = strconv.Atoi(r.FormValue("id"))
-	api.DeleteSalesData(salesID, w)
+	result, err := api.DeleteSalesData(salesID)
+	checkInternalServerError(err, w)
 
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	checkQueryResult(result, "Successfully Deleted Sales data.", "Failed to delete sales data", w)
 }
 
 //MigrateSalesFromFile function is to migrate data from sales csv
 func MigrateSalesFromFile(w http.ResponseWriter, r *http.Request) {
-	records := api.ReadCSVFile(r.FormValue("filename"))
+	records, err := api.ReadCSVFile(r.FormValue("filename"))
+	checkInternalServerError(err, w)
+
 	sales := api.ConvertRecordsToSalesFile(records)
 
 	for index := range sales {
-		// remove first row, the header
+		// pass the header
 		if index == 0 {
 			continue
 		}
 		sale := sales[index]
-		api.SaveSales(sale, w)
+		_, err := api.SaveSales(sale)
+		checkInternalServerError(err, w)
 	}
 
 	http.Redirect(w, r, "/sales/list", http.StatusPermanentRedirect)

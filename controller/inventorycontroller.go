@@ -12,7 +12,9 @@ func GetInventory(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "GET")
 
 	sku := r.FormValue("sku")
-	inv := api.GetSpecificInventory(sku, w)
+	inv, err := api.GetInventoryBySKU(sku)
+
+	checkInternalServerError(err, w)
 
 	json.NewEncoder(w).Encode(inv)
 }
@@ -21,7 +23,9 @@ func GetInventory(w http.ResponseWriter, r *http.Request) {
 func ListInventory(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "GET")
 
-	invs := api.ListAllInventories(w)
+	invs, err := api.ListInventories()
+	checkInternalServerError(err, w)
+
 	json.NewEncoder(w).Encode(invs)
 }
 
@@ -31,8 +35,11 @@ func AddInventory(w http.ResponseWriter, r *http.Request) {
 
 	inv := parseRequestToInventory(w, r)
 
-	api.SaveInventory(inv, w)
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	result, err := api.SaveInventory(inv)
+
+	checkInternalServerError(err, w)
+
+	checkQueryResult(result, "Inventory has been successfully Added to database.", "Cannot add inventory.", w)
 }
 
 //AddBulkInventory is to save Multiple Inventory data
@@ -43,10 +50,11 @@ func AddBulkInventory(w http.ResponseWriter, r *http.Request) {
 
 	for index := 0; index < len(invs); index++ {
 		inv := invs[index]
-		api.SaveInventory(inv, w)
+		_, err := api.SaveInventory(inv)
+		checkInternalServerError(err, w)
 	}
 
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	http.Redirect(w, r, "/inventory/list", http.StatusPermanentRedirect)
 }
 
 //UpdateInventory is the function to get update existing inventory data
@@ -54,9 +62,11 @@ func UpdateInventory(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "PUT")
 
 	inv := parseRequestToInventory(w, r)
-	api.EditInventoryData(inv, w)
+	result, err := api.EditInventoryData(inv)
 
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	checkInternalServerError(err, w)
+
+	checkQueryResult(result, "Inventory has been successfully Updated.", "Cannot update inventory.", w)
 }
 
 //DeleteInventoryController is the function to delete one inventory object
@@ -64,23 +74,27 @@ func DeleteInventoryController(w http.ResponseWriter, r *http.Request) {
 	validateRequestMethod(w, r, "DELETE")
 
 	sku := r.FormValue("sku")
-	api.DeleteInventory(sku, w)
+	result, err := api.DeleteInventory(sku)
+	checkInternalServerError(err, w)
 
-	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+	checkQueryResult(result, "Succesfully deleted inventory.", "Failed to delete inventory.", w)
 }
 
 //MigrateInventoryFromFile function is to migrate data from inventory data file
 func MigrateInventoryFromFile(w http.ResponseWriter, r *http.Request) {
-	records := api.ReadCSVFile(r.FormValue("filename"))
+	records, err := api.ReadCSVFile(r.FormValue("filename"))
+	checkInternalServerError(err, w)
+
 	invs := api.ConvertRecordsToInventory(records)
 
 	for index := range invs {
-		// remove first row, the header
+		// pass the header
 		if index == 0 {
 			continue
 		}
 		inv := invs[index]
-		api.SaveInventory(inv, w)
+		_, err := api.SaveInventory(inv)
+		checkInternalServerError(err, w)
 	}
 
 	http.Redirect(w, r, "/inventory/list", http.StatusPermanentRedirect)

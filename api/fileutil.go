@@ -10,13 +10,8 @@ import (
 	"github.com/ilmiawan/ssinventory/model"
 )
 
-//FloatToString convert float to String
-func FloatToString(inputNum float64) string {
-	return strconv.FormatFloat(inputNum, 'f', 2, 64)
-}
-
 //ReadCSVFile function is to read csv file and return string arrays
-func ReadCSVFile(fullpathName string) [][]string {
+func ReadCSVFile(fullpathName string) ([][]string, error) {
 	csvFile, err := os.Open(fullpathName)
 	if err != nil {
 		panic(err)
@@ -26,9 +21,7 @@ func ReadCSVFile(fullpathName string) [][]string {
 	reader := csv.NewReader(bufio.NewReader(csvFile))
 	reader.Comma = ';'
 
-	result, _ := reader.ReadAll()
-
-	return result
+	return reader.ReadAll()
 }
 
 //ConvertRecordsToInventory is to read files from inventory csv

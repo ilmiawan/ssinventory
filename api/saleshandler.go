@@ -1,39 +1,27 @@
 package api
 
 import (
-	"fmt"
-	"net/http"
+	"database/sql"
 
 	"github.com/ilmiawan/ssinventory/model"
 )
 
 //GetSalesData is the function to get one sales object
-func GetSalesData(ID int, w http.ResponseWriter) model.Sales {
-	stmt := `select id, sales_id, sku, sales_date, amount, price, total, notes from sales where id = $1;`
-	checkInternalServerError(err, w)
+func GetSalesData(ID int) (model.Sales, error) {
 
-	openDBConn()
-	defer db.Close()
-
-	row := db.QueryRow(stmt, ID)
+	stmt := `select id, sales_id, sku, sales_date, amount, price, total, notes from sales where id = ?`
+	row := runQueryRow(stmt, ID)
 
 	var sale model.Sales
-
 	err := row.Scan(&sale.ID, &sale.SalesID, &sale.SKU, &sale.SalesDate, &sale.Amount, &sale.Price, &sale.Total, &sale.Notes)
-	if err != nil {
-		panic(err)
-	}
 
-	return sale
+	return sale, err
 }
 
 //ListAllSalesData to list all sales data
-func ListAllSalesData(w http.ResponseWriter) []model.Sales {
-	openDBConn()
-	defer db.Close()
-
-	rows, err := db.Query("select id, sales_id, sku, sales_date, amount, price, total, notes from sales")
-	checkInternalServerError(err, w)
+func ListAllSalesData() ([]model.Sales, error) {
+	queryString := "select id, sales_id, sku, sales_date, amount, price, total, notes from sales"
+	rows, err := runQuery(queryString)
 
 	sales := []model.Sales{}
 	var sale model.Sales
@@ -41,57 +29,35 @@ func ListAllSalesData(w http.ResponseWriter) []model.Sales {
 	if rows != nil {
 		for rows.Next() {
 			err = rows.Scan(&sale.ID, &sale.SalesID, &sale.SKU, &sale.SalesDate, &sale.Amount, &sale.Price, &sale.Total, &sale.Notes)
-			checkInternalServerError(err, w)
 			sales = append(sales, sale)
 		}
 	}
 
-	return sales
+	return sales, err
 }
 
 //SaveSales is to save sales data
-func SaveSales(sale model.Sales, w http.ResponseWriter) {
-	openDBConn()
-	defer db.Close()
-
-	stmt, err := db.Prepare(`
+func SaveSales(sale model.Sales) (sql.Result, error) {
+	queryString := `
 		INSERT INTO sales(sales_id, sku, sales_date, amount, price, total, notes) 
 		VALUES(?, ?, ?, ?, ?, ?, ?)
-		`)
-
-	_, err = stmt.Exec(sale.SalesID, sale.SKU, sale.SalesDate, sale.Amount, sale.Price, sale.Total, sale.Notes)
-	checkInternalServerError(err, w)
+		`
+	return runExecPreparedStatement(queryString, sale.SalesID, sale.SKU, sale.SalesDate, sale.Amount, sale.Price, sale.Total, sale.Notes)
 
 	//SumInventoryAmount(-sale.Amount, 0, sale.SKU, w)
 }
 
 //EditSales function to edit sales data
-func EditSales(sale model.Sales, w http.ResponseWriter) {
-	openDBConn()
-	defer db.Close()
-	stmt, err := db.Prepare(`
+func EditSales(sale model.Sales) (sql.Result, error) {
+	queryString := `
 		UPDATE sales SET sales_id=?, sku=?, sales_date=?, amount=?, price=?, total=?, notes=? 
 		WHERE id=?
-		`)
-	checkInternalServerError(err, w)
-
-	_, err = stmt.Exec(sale.SalesID, sale.SKU, sale.SalesDate, sale.Amount, sale.Price, sale.Total, sale.Notes, sale.ID)
-	checkInternalServerError(err, w)
+		`
+	return runExecPreparedStatement(queryString, sale.SalesID, sale.SKU, sale.SalesDate, sale.Amount, sale.Price, sale.Total, sale.Notes, sale.ID)
 }
 
 //DeleteSalesData function to delete requested sales data
-func DeleteSalesData(ID int, w http.ResponseWriter) {
-	openDBConn()
-	defer db.Close()
-
-	stmt, err := db.Prepare("delete	from sales where id = ?")
-	checkInternalServerError(err, w)
-
-	res, err := stmt.Exec(ID)
-	checkInternalServerError(err, w)
-
-	affect, err := res.RowsAffected()
-	checkInternalServerError(err, w)
-
-	fmt.Println(affect)
+func DeleteSalesData(ID int) (sql.Result, error) {
+	queryString := "delete	from sales where id = ?"
+	return runExecPreparedStatement(queryString, ID)
 }

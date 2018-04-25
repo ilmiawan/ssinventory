@@ -23,11 +23,28 @@ func openDBConn() {
 	}
 }
 
-func runQueryRow(stmt string, id interface{}) *sql.Row {
+func runQueryRow(stmt string, args ...interface{}) *sql.Row {
 	openDBConn()
 	defer db.Close()
 
-	return db.QueryRow(stmt, id)
+	return db.QueryRow(stmt, args...)
+}
+
+func runQuery(stmt string, args ...interface{}) (*sql.Rows, error) {
+	openDBConn()
+	defer db.Close()
+
+	return db.Query(stmt, args...)
+}
+
+func runExecPreparedStatement(qString string, args ...interface{}) (sql.Result, error) {
+	openDBConn()
+	defer db.Close()
+
+	stmt, _ := db.Prepare(qString)
+	result, err := stmt.Exec(args...)
+
+	return result, err
 }
 
 //CreateTables is the function to create tables

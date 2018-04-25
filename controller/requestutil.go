@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -85,4 +86,17 @@ func parseRequestToSales(w http.ResponseWriter, r *http.Request) model.Sales {
 	checkInternalServerError(err, w)
 
 	return sale
+}
+
+func checkQueryResult(result sql.Result, success string, failed string, w http.ResponseWriter) {
+	if result != nil {
+		count, _ := result.RowsAffected()
+		if count > int64(0) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(success))
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(failed))
+		}
+	}
 }

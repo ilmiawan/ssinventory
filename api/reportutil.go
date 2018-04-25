@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/csv"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -14,10 +13,10 @@ var header = [][]string{}
 var data = [][]string{}
 
 //CreateInventoryReport function for generating inventory reports csv
-func CreateInventoryReport(w http.ResponseWriter) {
+func CreateInventoryReport() error {
 	data = append(data, []string{"SKU", "Nama Item", "Jumlah", "Rata-Rata Harga Beli", "Total"})
 
-	invs := ListAllInventories(w)
+	invs, err := ListInventories()
 	grandTotal := 0
 	totalAmounts := 0
 
@@ -35,7 +34,9 @@ func CreateInventoryReport(w http.ResponseWriter) {
 		header = append(header, []string{h.Title, h.Value})
 	}
 
-	generateReport("./resources/Laporan_Nilai_Barang.csv", w)
+	err = generateReport("./resources/Laporan_Nilai_Barang.csv")
+
+	return err
 }
 
 func generateInventoryReportHeader(itemLength int, totalAmount int, grandTotal int) []model.ReportHeaders {
@@ -71,10 +72,10 @@ func generateInventoryReportHeader(itemLength int, totalAmount int, grandTotal i
 }
 
 //CreateSalesReport is for generating sales report function
-func CreateSalesReport(w http.ResponseWriter) {
+func CreateSalesReport() error {
 	data = append(data, []string{"ID Pesanan", "Waktu", "SKU", "Nama Barang", "Jumlah", "Harga Jual", "Total", "Harga Beli", "Laba"})
 
-	salesReports := ListSalesReportData(w)
+	salesReports, err := ListSalesReportData()
 	totalOmzet := 0
 	totalProfit := 0
 	totalSales := len(salesReports)
@@ -95,7 +96,9 @@ func CreateSalesReport(w http.ResponseWriter) {
 		header = append(header, []string{h.Title, h.Value})
 	}
 
-	generateReport("./resources/Laporan_Penjualan.csv", w)
+	err = generateReport("./resources/Laporan_Penjualan.csv")
+
+	return err
 }
 
 func generateSalesReportHeader(totalOmzet int, totalProfit int, totalSales int, totalStock int) []model.ReportHeaders {
@@ -135,11 +138,14 @@ func generateSalesReportHeader(totalOmzet int, totalProfit int, totalSales int, 
 }
 
 //ListSalesReportData function is to retrieve sales report data
-func ListSalesReportData(w http.ResponseWriter) []model.SalesReport {
-	openDBConn()
-	defer db.Close()
-	rows, err := db.Query("SELECT s.sales_id, s.sales_date, s.sku, i.name, s.amount, s.price sale_price, s.total, p.price buy_price, i.amount inv_amount FROM sales s LEFT JOIN purchasing p ON s.sku = p.sku LEFT JOIN inventory i ON s.sku = i.sku GROUP BY s.sales_id, s.sales_date")
-	checkInternalServerError(err, w)
+func ListSalesReportData() ([]model.SalesReport, error) {
+	queryString := `
+			SELECT s.sales_id, s.sales_date, s.sku, i.name, s.amount, s.price sale_price, 
+			s.total, p.price buy_price, i.amount inv_amount FROM sales s 
+			LEFT JOIN purchasing p ON s.sku = p.sku LEFT JOIN inventory i 
+			ON s.sku = i.sku GROUP BY s.sales_id, s.sales_date
+		`
+	rows, err := runQuery(queryString)
 
 	srs := []model.SalesReport{}
 	var sr model.SalesReport
@@ -147,22 +153,22 @@ func ListSalesReportData(w http.ResponseWriter) []model.SalesReport {
 	if rows != nil {
 		for rows.Next() {
 			err = rows.Scan(&sr.SalesID, &sr.SalesDate, &sr.SKU, &sr.Name, &sr.Amount, &sr.SalePrice, &sr.Total, &sr.BuyPrice, &sr.InvAmount)
-			checkInternalServerError(err, w)
 			srs = append(srs, sr)
 		}
 	}
 
-	return srs
+	return srs, err
 }
 
-func generateReport(filename string, w http.ResponseWriter) {
+func generateReport(filename string) error {
 	file, err := os.Create(filename)
-	checkInternalServerError(err, w)
 	defer file.Close()
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	writer.WriteAll(header)
-	writer.WriteAll(data)
+	err = writer.WriteAll(header)
+	err = writer.WriteAll(data)
+
+	return err
 }
